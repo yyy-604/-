@@ -2,6 +2,8 @@ package org.example.service;
 
 import org.example.model.*;
 import org.example.repository.DB;
+import org.example.service.parking.ParkingManager;
+import org.example.service.user.UserManager;
 
 public class ServiceManager {
     private UserManager userManager;

@@ -1,14 +1,13 @@
 package org.example.model;
 
+import java.util.UUID;
+
 public abstract class Product {
-    protected String id;
+    private UUID id;
 
-    public Product() {}
-
-    public Product(String id) {
-        this.id = id;
+    public Product() {
+        this.id = UUID.randomUUID();
     }
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public UUID getId() { return id; }
 }
