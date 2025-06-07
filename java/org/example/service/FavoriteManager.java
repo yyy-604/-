@@ -1,8 +1,7 @@
-package org.example.service.user;
+package org.example.service;
 
 import org.example.model.Favorite;
 import org.example.repository.DB;
-import org.example.service.AbstractManager;
 
 import java.util.ArrayList;
 import java.util.List;

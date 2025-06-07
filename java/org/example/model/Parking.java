@@ -1,43 +1,65 @@
 package org.example.model;
 
-import java.util.Arrays;
-import java.util.EnumSet;
-
 public class Parking extends Product {
-    public enum Option { PUBLIC, PRIVATE, GENERAL, ON_SITE, MOBILE, FREE, PAID };
-
     private String name;
     private String address;
 
-    private EnumSet<Option> options;
+    private boolean isPublic;
+    private boolean isPrivate;
+    private boolean isGeneral;
+    private boolean isOnSite;
+    private boolean isMobile;
+    private boolean isFree;
+    private boolean isPaid;
+    private int spaceCount;
 
-    public Parking(
-        String name,
-        String address) {
-        super();
+    public Parking() {}
 
+    public Parking(String id, String name, String address,
+                   boolean isPublic, boolean isPrivate, boolean isGeneral,
+                   boolean isOnSite, boolean isMobile, boolean isFree, boolean isPaid,
+                   int spaceCount) {
+        super(id);
         this.name = name;
         this.address = address;
-        this.options = EnumSet.noneOf(Option.class);
-
+        this.isPublic = isPublic;
+        this.isPrivate = isPrivate;
+        this.isGeneral = isGeneral;
+        this.isOnSite = isOnSite;
+        this.isMobile = isMobile;
+        this.isFree = isFree;
+        this.isPaid = isPaid;
+        this.spaceCount = spaceCount;
     }
 
+    // Getter/Setter (필요한 만큼)
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
 
-    public EnumSet<Option> getOptions() { return options; }
-    public void setOptions(EnumSet<Option> options) { this.options = options; }
+    public boolean isPublic() { return isPublic; }
+    public void setPublic(boolean isPublic) { this.isPublic = isPublic; }
 
-    public boolean hasOptions(Option... optionsToCheck) {
-        return Arrays.stream(optionsToCheck).allMatch(options::contains);
-    }
-    public void addOptions(Option... optionsToAdd) {
-        options.addAll(EnumSet.copyOf(Arrays.asList(optionsToAdd)));
-    }
-    public void removeOptions(Option... optionsToRemove) {
-        options.removeAll(EnumSet.copyOf(Arrays.asList(optionsToRemove)));
-    }
+    public boolean isPrivate() { return isPrivate; }
+    public void setPrivate(boolean isPrivate) { this.isPrivate = isPrivate; }
+
+    public boolean isGeneral() { return isGeneral; }
+    public void setGeneral(boolean isGeneral) { this.isGeneral = isGeneral; }
+
+    public boolean isOnSite() { return isOnSite; }
+    public void setOnSite(boolean isOnSite) { this.isOnSite = isOnSite; }
+
+    public boolean isMobile() { return isMobile; }
+    public void setMobile(boolean isMobile) { this.isMobile = isMobile; }
+
+    public boolean isFree() { return isFree; }
+    public void setFree(boolean isFree) { this.isFree = isFree; }
+
+    public boolean isPaid() { return isPaid; }
+    public void setPaid(boolean isPaid) { this.isPaid = isPaid; }
+
+    public int getSpaceCount() { return spaceCount; }
+    public void setSpaceCount(int spaceCount) { this.spaceCount = spaceCount; }
 }
