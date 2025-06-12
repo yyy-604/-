@@ -23,7 +23,11 @@ public class MyParkingPassForm extends JFrame {
         this.ui = ui;
         this.currentUser = ui.getCurrentUser();
 
-        setTitle("내 주차권 목록");
+        if (ui.getCurrentUser().getId() == "admin") {
+            setTitle("주차권 관리");
+        } else {
+            setTitle("내 주차권 목록");
+        }
         setSize(700, 400);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -33,6 +37,10 @@ public class MyParkingPassForm extends JFrame {
 
     private void initComponents() {
         String[] columns = {"주차장", "공간 타입", "예약 시간", "상태"};
+        if (ui.getCurrentUser().getId() == "admin") {
+            columns = new String[]{"주차장", "공간 타입", "예약 시간", "상태", "사용자"};
+        }
+        
         tableModel = new DefaultTableModel(columns, 0){
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -64,20 +72,43 @@ public class MyParkingPassForm extends JFrame {
         tableModel.setRowCount(0);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-        List<String> passIds = currentUser.getParkingPassIDList();
-        for (String passId : passIds) {
-            ParkingPass pass = ui.getServiceManager().getParkingPassManager().findById(passId);
-            Parking parking = ui.getServiceManager().findParking(pass.getParkingId());
-            Space space = ui.getServiceManager().getSpaceManager().findById(pass.getSpaceId());
+        if (ui.getCurrentUser().getId() == "admin") {
+            for (User user: ui.getServiceManager().getUserManager().getAll()) {
+                if (user.getId() == "admin") continue;
 
-            String formattedTime = pass.getTime().format(formatter);
-
-            tableModel.addRow(new Object[]{
-                    parking.getName(),
-                    space.getSpaceType(),
-                    formattedTime,
-                    "사용중"
-            });
+                List<String> passIds = user.getParkingPassIDList();
+                for (String passId : passIds) {
+                    ParkingPass pass = ui.getServiceManager().getParkingPassManager().findById(passId);
+                    Parking parking = ui.getServiceManager().findParking(pass.getParkingId());
+                    Space space = ui.getServiceManager().getSpaceManager().findById(pass.getSpaceId());
+        
+                    String formattedTime = pass.getTime().format(formatter);
+        
+                    tableModel.addRow(new Object[]{
+                            parking.getName(),
+                            space.getSpaceType(),
+                            formattedTime,
+                            "사용중",
+                            user.getId()
+                    });
+                }
+            }
+        } else {
+            List<String> passIds = currentUser.getParkingPassIDList();
+            for (String passId : passIds) {
+                ParkingPass pass = ui.getServiceManager().getParkingPassManager().findById(passId);
+                Parking parking = ui.getServiceManager().findParking(pass.getParkingId());
+                Space space = ui.getServiceManager().getSpaceManager().findById(pass.getSpaceId());
+    
+                String formattedTime = pass.getTime().format(formatter);
+    
+                tableModel.addRow(new Object[]{
+                        parking.getName(),
+                        space.getSpaceType(),
+                        formattedTime,
+                        "사용중"
+                });
+            }
         }
     }
 
@@ -87,8 +118,14 @@ public class MyParkingPassForm extends JFrame {
             JOptionPane.showMessageDialog(this, "반납할 항목을 선택하세요.");
             return;
         }
+        User user = currentUser;
+        if (ui.getCurrentUser().getId() == "admin") {
+            String userId = (String) table.getValueAt(row, 4);
+            System.out.printf(userId);
+            user = ui.getServiceManager().getUserManager().findById(userId);
+        }
 
-        String passId = currentUser.getParkingPassIDList().get(row);
+        String passId = user.getParkingPassIDList().get(row);
         boolean success = ui.getServiceManager().returnParkingPass(passId);
         if (success) {
             JOptionPane.showMessageDialog(this, "반납이 완료되었습니다.");

@@ -19,7 +19,11 @@ public class MyParkingForm extends JFrame {
     public MyParkingForm(UI ui) {
         this.ui = ui;
 
-        setTitle("내 주차장");
+        if (ui.getCurrentUser().getId() == "admin") {
+            setTitle("주차장 관리");
+        } else {
+            setTitle("내 주차장");
+        }
         setSize(500, 350);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -80,11 +84,11 @@ public class MyParkingForm extends JFrame {
         removeButton.addActionListener(_ -> {
             int selectedRow = table.getSelectedRow();
             if (myParkings == null || myParkings.size() == 0) {
-                JOptionPane.showMessageDialog(this, "수정할 주차장이 없습니다.");
+                JOptionPane.showMessageDialog(this, "삭제할 주차장이 없습니다.");
                 return;
             }
             if (selectedRow == -1) {
-                JOptionPane.showMessageDialog(this, "수정할 주차장을 선택하세요.");
+                JOptionPane.showMessageDialog(this, "삭제할 주차장을 선택하세요.");
                 return;
             }
             if (selectedRow < 0 || selectedRow >= myParkings.size()) {
@@ -105,8 +109,11 @@ public class MyParkingForm extends JFrame {
 
     // 최신화 (등록/수정 후 갱신)
     public void refreshTable() {
-        myParkings = ui.getServiceManager().getParkingManager()
-                .getMyParkings(ui.getCurrentUser().getId());
+        if (ui.getCurrentUser().getId() == "admin") {
+            myParkings = ui.getServiceManager().getParkingManager().getAll();
+        } else {
+            myParkings = ui.getServiceManager().getParkingManager().getMyParkings(ui.getCurrentUser().getId());
+        }
         model.setRowCount(0);
         for (Parking p : myParkings) {
             model.addRow(new Object[]{p.getName(), p.getAddress()});

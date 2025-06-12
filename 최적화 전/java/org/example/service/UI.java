@@ -13,6 +13,8 @@ public class UI {
         this.serviceManager = new ServiceManager();
         this.currentUser = null;
         this.filterOptions = null;
+
+        this.getServiceManager().getUserManager().createUser("admin", "admin", "admin", null);
     }
 
     // --- ServiceManager 반환 (폼에서 직접 사용시) ---

@@ -66,6 +66,12 @@ public class MainMenu extends JFrame {
             JButton myPassBtn = new JButton("내 주차권");
             JButton exitBtn = new JButton("종료");
 
+            if (ui.getCurrentUser().getId() == "admin") {
+                infoEditBtn.setText("사용자 관리");
+                myParkingBtn.setText("주차장 관리");
+                myPassBtn.setText("주차권 관리");
+            }
+
             gbc.gridy = row++;
             panel.add(logoutBtn, gbc);
             gbc.gridy = row++;
@@ -84,7 +90,11 @@ public class MainMenu extends JFrame {
             });
 
             infoEditBtn.addActionListener(e -> {
-                new InfoEditForm(ui);
+                if (ui.getCurrentUser().getId() == "admin") {
+                    new UserForm(ui).setVisible(true);;
+                } else {
+                    new InfoEditForm(ui);
+                }
                 dispose();
             });
 
