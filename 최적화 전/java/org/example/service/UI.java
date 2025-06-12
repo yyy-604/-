@@ -99,6 +99,9 @@ public class UI {
                 isOnSite, isMobile, isFree, isPaid, spaceCount
         );
     }
+    public void removeParking(Parking parking) {
+        serviceManager.removeParking(parking.getId());
+    }
 
     // --- [NEW] 폼에서 모든 데이터 한번에 등록 가능 ---
     public boolean registerFullParkingInfo(

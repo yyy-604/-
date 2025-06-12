@@ -14,6 +14,7 @@ public class MyParkingForm extends JFrame {
     private final DefaultTableModel model;
     private final JTable table;
     private final JButton editButton;
+    private final JButton removeButton;
 
     public MyParkingForm(UI ui) {
         this.ui = ui;
@@ -36,9 +37,11 @@ public class MyParkingForm extends JFrame {
         JPanel buttonPanel = new JPanel();
         JButton addButton = new JButton("주차장 추가");
         editButton = new JButton("주차장 수정");
+        removeButton = new JButton("주차장 삭제");
         JButton backButton = new JButton("뒤로가기");
         buttonPanel.add(addButton);
         buttonPanel.add(editButton);
+        buttonPanel.add(removeButton);
         buttonPanel.add(backButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
@@ -73,6 +76,26 @@ public class MyParkingForm extends JFrame {
             new ParkingEditForm(ui, selected).setVisible(true);
         });
 
+        // 주차장 삭제
+        removeButton.addActionListener(_ -> {
+            int selectedRow = table.getSelectedRow();
+            if (myParkings == null || myParkings.size() == 0) {
+                JOptionPane.showMessageDialog(this, "수정할 주차장이 없습니다.");
+                return;
+            }
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "수정할 주차장을 선택하세요.");
+                return;
+            }
+            if (selectedRow < 0 || selectedRow >= myParkings.size()) {
+                JOptionPane.showMessageDialog(this, "선택된 행이 올바르지 않습니다. 다시 선택하세요.");
+                return;
+            }
+            Parking selected = myParkings.get(selectedRow);
+            ui.removeParking(selected);
+            refreshTable();
+        });
+
         // 뒤로가기 → 메인메뉴
         backButton.addActionListener(e -> {
             new MainMenu(ui);
@@ -90,5 +113,6 @@ public class MyParkingForm extends JFrame {
         }
         // 버튼 활성/비활성
         editButton.setEnabled(model.getRowCount() > 0);
+        removeButton.setEnabled(model.getRowCount() > 0);
     }
 }
