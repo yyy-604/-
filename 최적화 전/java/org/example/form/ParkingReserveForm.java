@@ -1,6 +1,7 @@
 package org.example.form;
 
 import org.example.model.Parking;
+import org.example.model.ParkingPass;
 import org.example.model.Space;
 import org.example.model.User;
 import org.example.service.UI;
@@ -9,6 +10,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+import java.time.format.DateTimeFormatter;
 
 public class ParkingReserveForm extends JDialog {
     private final UI ui;
@@ -17,6 +19,7 @@ public class ParkingReserveForm extends JDialog {
     private DefaultTableModel tableModel;
     private JButton reserveBtn, cancelBtn;
     private JComboBox<String> typeComboBox;
+    private JComboBox<String> hourComboBox;    // [추가] 예약 시간 콤보박스
     private List<Space> spaceList;
     private User currentUser;
 
@@ -25,7 +28,7 @@ public class ParkingReserveForm extends JDialog {
         this.parking = parking;
         this.currentUser = ui.getCurrentUser();
         setTitle("주차장 자리 예약");
-        setSize(700, 450);
+        setSize(750, 450);
         setLocationRelativeTo(null);
         setModal(true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -42,7 +45,7 @@ public class ParkingReserveForm extends JDialog {
         infoPanel.add(makeInfoRow("주소:", parking.getAddress()));
         infoPanel.add(makeInfoRow("등록자:", parking.getOwnerId() != null ? parking.getOwnerId() : "-"));
 
-        String[] colNames = {"타입", "상태", "사용자"};
+        String[] colNames = {"타입", "상태", "사용자", "예약 예정"};
         tableModel = new DefaultTableModel(colNames, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
@@ -78,6 +81,17 @@ public class ParkingReserveForm extends JDialog {
             }
         });
 
+        // 예약 시간 콤보박스 패널
+        JPanel hourPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        hourPanel.add(new JLabel("예약 시간 선택:"));
+        String[] hourOptions = new String[13];
+        hourOptions[0] = "미지정";
+        for (int i = 1; i <= 12; i++) {
+            hourOptions[i] = i + "시간";
+        }
+        hourComboBox = new JComboBox<>(hourOptions);
+        hourPanel.add(hourComboBox);
+
         JPanel btnPanel = new JPanel();
         reserveBtn = new JButton("예약하기");
         cancelBtn = new JButton("취소");
@@ -88,10 +102,16 @@ public class ParkingReserveForm extends JDialog {
         centerPanel.add(filterPanel, BorderLayout.NORTH);
         centerPanel.add(new JScrollPane(table), BorderLayout.CENTER);
 
+        // [수정] 아래 두 패널을 남쪽에 수직으로 붙이기 위한 패널 생성
+        JPanel southPanel = new JPanel();
+        southPanel.setLayout(new BoxLayout(southPanel, BoxLayout.Y_AXIS));
+        southPanel.add(hourPanel);   // [추가] 시간 콤보박스
+        southPanel.add(btnPanel);
+
         setLayout(new BorderLayout(10, 10));
         add(infoPanel, BorderLayout.NORTH);
         add(centerPanel, BorderLayout.CENTER);
-        add(btnPanel, BorderLayout.SOUTH);
+        add(southPanel, BorderLayout.SOUTH);  // [수정] 기존 btnPanel -> southPanel
 
         reserveBtn.addActionListener(e -> onReserve());
         cancelBtn.addActionListener(e -> {
@@ -104,11 +124,27 @@ public class ParkingReserveForm extends JDialog {
         tableModel.setRowCount(0);
         spaceList = ui.getServiceManager().getSpaceManager().findByParkingId(parking.getId());
         for (Space s : spaceList) {
-            if (filterType != null && !s.getSpaceType().equals(filterType)) continue;
             String status = s.isAvailable() ? "비어있음" : "사용중";
-            String userId = (s.getUserId() != null) ? s.getUserId() : "-";
-            tableModel.addRow(new Object[]{s.getSpaceType(), status, userId});
+            String userId = "-";
+            String reserveUntilStr = "-";
+
+            if (!s.isAvailable()) { // 사용중이면
+                userId = s.getUserId();
+                // "현재 유효한 ParkingPass" 찾아서 정보 채우기
+                ParkingPass pass = ui.getServiceManager().getParkingPassManager().findActivePassBySpaceId(s.getId());
+                if (pass != null) {
+                    if (pass.getEndTime() != null) {
+                        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+                        reserveUntilStr = pass.getEndTime().format(fmt) + "까지 예약 예정";
+                    }
+                }
+            }
+
+            tableModel.addRow(new Object[]{
+                    s.getSpaceType(), status, userId, reserveUntilStr
+            });
         }
+
     }
 
     private void onReserve() {
@@ -130,7 +166,14 @@ public class ParkingReserveForm extends JDialog {
 
         String selectedType = (String) tableModel.getValueAt(row, 0);
 
-        boolean success = ui.getServiceManager().reserveSpace(currentUser, parking, selectedType);
+        // 예약 시간 값 읽어서 int로 파싱 ("미지정"이면 0)
+        String hourText = (String) hourComboBox.getSelectedItem();
+        int useTime = 0;
+        if (!"미지정".equals(hourText)) {
+            useTime = Integer.parseInt(hourText.replace("시간", ""));
+        }
+
+        boolean success = ui.getServiceManager().reserveSpace(currentUser, parking, selectedType, useTime);
         if (success) {
             JOptionPane.showMessageDialog(this, "예약이 완료되었습니다.");
             new SearchForm(ui).setVisible(true); // 검색창 다시 열기
@@ -138,7 +181,6 @@ public class ParkingReserveForm extends JDialog {
         } else {
             JOptionPane.showMessageDialog(this, "예약에 실패했습니다.");
         }
-
     }
 
     private JPanel makeInfoRow(String label, String value) {
