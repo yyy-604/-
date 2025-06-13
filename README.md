@@ -1,3 +1,3 @@
 # -
 
-![Class Configuration](assets/수정클래스다이어그램.png)
+![Class Configuration](assets/수정 클래스다이어그램.png)
